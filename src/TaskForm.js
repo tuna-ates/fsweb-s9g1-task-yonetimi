@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useForm, SubmitHandler } from "react-hook-form"
 import { nanoid } from "nanoid";
 import * as Yup from "yup";
 
@@ -15,91 +16,37 @@ const formSemasi = Yup.object().shape({
 });
 
 const TaskForm = ({ kisiler, submitFn }) => {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    people: [],
-  });
-
+  const {register,handleSubmit,formState:{errors,isValid}}=useForm({
+    defaultValues:{
+      title: "",
+      description: "",
+      people: "",
+    },
+    mode:"all"
+  })
   // yup error stateleri
-  const [formErrors, setFormErrors] = useState({
-    title: "",
-    description: "",
-    people: "",
-  });
-
-  const [buttonDisabled, setButtonDisabled] = useState(true);
 
   // form datası her güncellendiğinde valid mi diye kontrol et
-  useEffect(() => {
-    formSemasi.isValid(formData).then((valid) => setButtonDisabled(!valid));
-  }, [formData]);
+
 
   // yup form alani her değiştiğinde çalışan kontrol fonksiyonu
-  function formAlaniniKontrolEt(name, value) {
-    Yup.reach(formSemasi, name)
-      .validate(value)
-      .then(() => {
-        setFormErrors({
-          ...formErrors,
-          [name]: "",
-        });
-      })
-      .catch((err) => {
-        setFormErrors({
-          ...formErrors,
-          [name]: err.errors[0],
-        });
-      });
-  }
+ 
 
   // checkboxların değişimini state içerisine eklemek için özel fonksiyon
-  function handleCheckboxChange(e) {
-    const { value } = e.target;
-
-    let yeniPeople = [...formData.people];
-    const index = formData.people.indexOf(value);
-    if (index > -1) {
-      yeniPeople.splice(index, 1);
-    } else {
-      yeniPeople.push(value);
-    }
-
-    formAlaniniKontrolEt("people", yeniPeople);
-    setFormData({
-      ...formData,
-      people: yeniPeople,
-    });
-  }
+  
 
 
   // diğer form alanları değiştikçe çalışan ve yeni değeri state'e ekleyen fonksiyon
-  function handleOthersChange(e) {
-    const { name, value } = e.target;
-    formAlaniniKontrolEt(name, value);
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  }
+
 
   // task ekleme
-  function handleSubmit(e) {
-    e.preventDefault();
-    submitFn({
-      ...formData,
-      id: nanoid(5),
-      status: "yapılacak",
-    });
-    setFormData({
-      title: "",
-      description: "",
-      people: [],
-    });
+  function onSubmit(formData) {
+    console.log("data",formData);
+    submitFn({...formData,id:nanoid(5),status:"yapılacak"});
   }
 
   return (
-    <form className="taskForm" onSubmit={handleSubmit}>
+    <form className="taskForm" onSubmit={handleSubmit(onSubmit)}>
       <div className="form-line">
         <label className="input-label" htmlFor="title">
           Başlık
@@ -107,12 +54,10 @@ const TaskForm = ({ kisiler, submitFn }) => {
         <input
           className="input-text"
           id="title"
-          name="title"
           type="text"
-          onChange={handleOthersChange}
-          value={formData.title}
+          {...register("title",{required:"İsim alanı boş bırakılamaz!"})}
         />
-        <p className="input-error">{formErrors.title}</p>
+        <div className="feedback-control">{errors?.title?.message}</div>
       </div>
 
       <div className="form-line">
@@ -123,11 +68,9 @@ const TaskForm = ({ kisiler, submitFn }) => {
           className="input-textarea"
           rows="3"
           id="description"
-          name="description"
-          onChange={handleOthersChange}
-          value={formData.description}
+          {...register("description",{required:"Açıklama alanı boş bırakılamaz!",minLength:{value:10,message:"Açıklamayı en az 10 kelime ile anlat"}})}
         ></textarea>
-        <p className="input-error">{formErrors.description}</p>
+         <div className="feedback-control">{errors?.description?.message}</div>
       </div>
 
       <div className="form-line">
@@ -137,23 +80,20 @@ const TaskForm = ({ kisiler, submitFn }) => {
             <label className="input-checkbox" key={p}>
               <input
                 type="checkbox"
-                name="people"
-                value={p}
-                onChange={handleCheckboxChange}
-                checked={formData.people.includes(p)}
+               {...register("people",{required:"En az bir görevli seçmelisin!"})}
               />
               {p}
             </label>
           ))}
         </div>
-        <p className="input-error">{formErrors.people}</p>
+        <div className="feedback-control">{errors?.people?.message}</div>
       </div>
 
       <div className="form-line">
         <button
           className="submit-button"
           type="submit"
-          disabled={buttonDisabled}
+          disabled={!isValid}
         >
           Kaydet
         </button>

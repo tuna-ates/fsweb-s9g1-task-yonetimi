@@ -146,4 +146,8 @@
   cursor: not-allowed;
   box-shadow: none;
 }
+.valid-feedback{
+  color: red;
+  border-color: red;
+}
 /* FORM */

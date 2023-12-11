@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./app.css";
 import Task from "./Task";
 import TaskForm from "./TaskForm";
 import TaskHookForm from "./TaskHookForm";
 import PeopleForm from "./PeopleForm";
 import { initialTasks, initialTeam } from "./data";
+import { ToastContainer,toast } from "react-toastify";
 
 
 function App() {
@@ -12,15 +13,25 @@ function App() {
   const [team, setTeam] = useState(initialTeam);
 
   function handleTaskSubmit(yeniTask) {
-    setTasks([yeniTask, ...tasks])
+    setTasks([...tasks,yeniTask])
+    toast.success("Görev yüklendi.",{theme: "colored"})   
   }
+  useEffect(()=>{
+    console.log("taskkkk:",tasks);
+  })
 
   function handlePeopleSubmit(yeniKisi) {
+  
     setTeam([...team, yeniKisi])
+    toast.warn("Kullanıcı eklendi",{theme: "colored"})
   }
 
   function handleComplete(id) {
-    console.log("tamamlama fonksiyonunu buraya yazın")
+    for(const item of tasks){
+      if(item.id===id){
+        item.status="yapıldı"
+      }
+    }
   }
 
   return (
@@ -28,7 +39,7 @@ function App() {
       <div className="formColumn">
         <div className="form-container">
           <h2>Yeni Task</h2>
-          {/* <TaskForm kisiler={team} submitFn={handleTaskSubmit} /> */}
+           {/* <TaskForm kisiler={team} submitFn={handleTaskSubmit} />  */}
           <TaskHookForm kisiler={team} submitFn={handleTaskSubmit} />
         </div>
 
@@ -59,7 +70,7 @@ function App() {
           </div>
         </div>
       </div>
-
+     <><ToastContainer /></>
     </div>
   );
 }
